@@ -102,7 +102,7 @@ public class WithCrlPathTest extends ActiveMQTestBase {
             System.out.println(">> DONE >>");
         } catch (Exception e) {
             assertEquals("Error :: ", "javax.net.ssl.SSLHandshakeException: Received fatal alert: certificate_unknown",  e.getMessage());
-            System.out.println(" >> " +e.getMessage());
+            e.printStackTrace();
         }
 
 
