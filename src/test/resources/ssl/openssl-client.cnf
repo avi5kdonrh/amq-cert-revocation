@@ -1,0 +1,13 @@
+[req]
+distinguished_name = req_distinguished_name
+req_extensions = v3_req
+prompt = no
+[req_distinguished_name]
+CN = amqclient1
+[v3_req]
+subjectAltName = @alt_names
+[alt_names]
+DNS.1 = my.host.name
+DNS.2 = adongre
+IP.1 = 127.0.0.1
+IP.2 = 192.168.137.1
