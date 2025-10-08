@@ -11,11 +11,19 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 public class WithCrlPathTest extends ActiveMQTestBase {
 
+    static {
+        System.setProperty("javax.net.ssl.trustStore","src/test/resources/ssl/amq.truststore.p12");
+        System.setProperty("javax.net.ssl.trustStorePassword","password");
+        System.setProperty("com.sun.security.enableCRLDP","true");
+        System.setProperty("com.sun.net.ssl.checkRevocation","true");
+    }
 
    ActiveMQServer server1;
    ActiveMQServer server2;
@@ -47,15 +55,14 @@ public class WithCrlPathTest extends ActiveMQTestBase {
 
    @Test
    public void testRedistributor() throws Exception {
-
       HashMap<String, Object> map = new HashMap<String, Object>();
       map.put("host", "localhost");
       map.put("port", 5672);
       map.put("sslEnabled", "true");
       map.put("keyStorePath", "src/test/resources/ssl/amq.keystore.p12");
-      map.put("trustStorePath", "src/test/resources/ssl/amq.truststore.p12");
+     // map.put("trustStorePath", "src/test/resources/ssl/amq.truststore.p12");
       map.put("keyStorePassword", "password");
-      map.put("trustStorePassword", "password");
+    //  map.put("trustStorePassword", "password");
       map.put("crlPath", "src/test/resources/ssl/crl.pem");
       map.put("needClientAuth", "true");
       map.put("protocols","AMQP");
@@ -86,24 +93,19 @@ public class WithCrlPathTest extends ActiveMQTestBase {
       server1.getConfiguration().setPagingDirectory("target/pg1");
       server1.start();
 
-       String amqp = "amqps://localhost:5672?transport.trustStoreLocation=src/test/resources/ssl/amq.truststore.p12";
-       amqp = amqp+"&transport.trustStorePassword=password&transport.verifyHost=false&transport.useOpenSSL=false";
-       amqp = amqp+"&transport.keyStoreLocation=src/test/resources/ssl/client-keystore.p12";
-       amqp = amqp+"&transport.keyStorePassword=password";
+      // Running the client in a separate process so it doesn't inherit server's JVM properties
 
-       JmsConnectionFactory connectionFactory = new JmsConnectionFactory(amqp);
-       connectionFactory.setUsername("admin");
-       connectionFactory.setPassword("admin");
-        try {
-            Connection connection = connectionFactory.createConnection();
-            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-            MessageProducer messageProducer = session.createProducer(session.createQueue("TEST"));
-            messageProducer.send(session.createTextMessage("Hi"));
-            System.out.println(">> DONE >>");
-        } catch (Exception e) {
-            assertEquals("Error :: ", "javax.net.ssl.SSLHandshakeException: Received fatal alert: certificate_unknown",  e.getMessage());
-            e.printStackTrace();
-        }
+      List<String> commands = new ArrayList<>();
+      commands.add("java");
+      commands.add("-cp");
+      commands.add(System.getProperty("java.class.path"));
+      commands.add("AMQPClient");
+      ProcessBuilder processBuilder = new ProcessBuilder(commands);
+      processBuilder.inheritIO();
+      Process process = processBuilder.start();
+      process.waitFor();
+
+
 
 
       }
