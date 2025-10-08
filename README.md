@@ -5,24 +5,18 @@ The same directory, also contains the client keypair (client.crt, client.key) an
 Both client and broker certs are signed by the same CA (ca-cert, ca-key), so amq.truststore.p12 (which contains the CA cert) can be used
 as a truststore for both the client and the server.
 
-Run the WithoutCrlPathTest to see that without setting the crlPath (in acceptor config), the revoked certificate work as usual.
+
+Run the WithCrlPathTest to see that by setting the truststore at JVM level gives the following warning:
 
 ```declarative
- mvn clean test -Dtest=WithoutCrlPathTest
+System.setProperty("javax.net.ssl.trustStore","src/test/resources/ssl/amq.truststore.p12");
+System.setProperty("javax.net.ssl.trustStorePassword","password");
+System.setProperty("com.sun.security.enableCRLDP","true");
+System.setProperty("com.sun.net.ssl.checkRevocation","true");
 ```
-
-Run the WithCrlPathTest to see that by setting the crlPath (in acceptor config), the client for which the certificate has been revoked, doesn't work.
-
+### Warning in the broker logs
 ```declarative
-mvn clean test -Dtest=WithCrlPathTest
-```
-The WithCrlPathTest logs will give a warning like so:
-
-```declarative
-2025-09-26 23:02:38,055 WARN  [org.apache.activemq.artemis.core.server]
-AMQ222208: SSL handshake failed for client from /127.0.0.1:38780:
-java.security.cert.CertificateRevokedException: Certificate has been revoked,
-reason: KEY_COMPROMISE, revocation date: Fri Sep 26 22:02:56 IST 2025,
-authority: CN=myhost, OU=Kafka, O=Strimzi, L=Local, ST=Local, C=US, extension OIDs: [2.5.29.21].
-
+2025-10-08 16:42:07,295 WARN  [org.apache.activemq.artemis.core.server] AMQ222208:
+SSL handshake failed for client from /127.0.0.1:38382:
+java.security.cert.CertPathValidatorException: Could not determine revocation status.
 ```
