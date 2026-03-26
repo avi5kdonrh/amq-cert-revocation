@@ -682,7 +682,7 @@ public abstract class ActiveMQTestBase extends ArtemisTestCase {
         // So this will first register them at the config and then generate a list of objects
         ArrayList<String> connectors = new ArrayList<>();
         for (TransportConfiguration tnsp : connectorConfigs) {
-            String name1 = RandomUtil.randomString();
+            String name1 = RandomUtil.randomUUIDString();
 
             server.getConfiguration().getConnectorConfigurations().put(name1, tnsp);
 
@@ -957,7 +957,7 @@ public abstract class ActiveMQTestBase extends ArtemisTestCase {
             Object value;
 
             if (prop.getPropertyType() == String.class) {
-                value = RandomUtil.randomString();
+                value = RandomUtil.randomUUIDString();
             } else if (prop.getPropertyType() == Integer.class || prop.getPropertyType() == Integer.TYPE) {
                 value = RandomUtil.randomInt();
             } else if (prop.getPropertyType() == Long.class || prop.getPropertyType() == Long.TYPE) {

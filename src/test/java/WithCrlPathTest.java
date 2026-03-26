@@ -16,6 +16,10 @@ import java.util.concurrent.CountDownLatch;
 
 public class WithCrlPathTest extends ActiveMQTestBase {
 
+   static {
+       //System.setProperty("com.sun.security.enableCRLDP", "true");
+      // System.setProperty("javax.net.debug","all");
+   }
 
    ActiveMQServer server1;
    ActiveMQServer server2;
