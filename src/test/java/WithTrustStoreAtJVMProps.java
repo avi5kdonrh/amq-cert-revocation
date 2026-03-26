@@ -9,20 +9,38 @@ import org.apache.qpid.jms.JmsConnectionFactory;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.InputStreamReader;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.locks.LockSupport;
 
-public class WithCrlPathTest extends ActiveMQTestBase {
+/*
+ * With trust store configured at the jvm level #L31, the certificate revocation does not work.
+ * mvn clean test -Dtest=WithTrustStoreAtJVMProps
+ * The client with the revoked certificate is able to send messages.
+ *
+ *  */
+public class WithTrustStoreAtJVMProps extends ActiveMQTestBase {
 
-    static {
+
+   private static final Logger log = LoggerFactory.getLogger(WithTrustStoreAtJVMProps.class);
+
+   static {
         System.setProperty("javax.net.ssl.trustStore","src/test/resources/ssl/amq.truststore.p12");
         System.setProperty("javax.net.ssl.trustStorePassword","password");
-        System.setProperty("com.sun.security.enableCRLDP","true");
+       /* System.setProperty("com.sun.security.enableCRLDP","true");
         System.setProperty("com.sun.net.ssl.checkRevocation","true");
+        System.setProperty("javax.net.debug","all");*/
     }
 
    ActiveMQServer server1;
@@ -55,17 +73,21 @@ public class WithCrlPathTest extends ActiveMQTestBase {
 
    @Test
    public void testRedistributor() throws Exception {
+
+      File file = new File("app.log");
+      if (file.exists()) {
+         file.delete();
+      }
+
       HashMap<String, Object> map = new HashMap<String, Object>();
       map.put("host", "localhost");
       map.put("port", 5672);
       map.put("sslEnabled", "true");
       map.put("keyStorePath", "src/test/resources/ssl/amq.keystore.p12");
-     // map.put("trustStorePath", "src/test/resources/ssl/amq.truststore.p12");
       map.put("keyStorePassword", "password");
-    //  map.put("trustStorePassword", "password");
       map.put("crlPath", "src/test/resources/ssl/crl.pem");
       map.put("needClientAuth", "true");
-      map.put("protocols","AMQP");
+      map.put("protocols","AMQP,CORE");
 
       ConfigurationImpl config1 =  createBasicConfig(0);
        config1.setName("broker1");
@@ -105,8 +127,10 @@ public class WithCrlPathTest extends ActiveMQTestBase {
       Process process = processBuilder.start();
       process.waitFor();
 
-
-
+      log.info("\n\nPrinting Client Logs now :: \n\n");
+      if (file.exists()) {
+        log.info(new String(new FileInputStream(file).readAllBytes()));
+      }
 
       }
 
