@@ -1,3 +1,5 @@
+[ ca ]
+default_ca = CA_default
 [req]
 default_bits = 2048
 prompt = no
@@ -33,7 +35,7 @@ crlnumber         = $dir/crlnumber
 crl               = $dir/crl.pem
 private_key       = $dir/ca-key
 default_days      = 365
-default_crl_days  = 30
+default_crl_days  = 365
 default_md        = sha256
 preserve          = no
 policy            = policy_match
